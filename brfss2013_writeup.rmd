@@ -1,0 +1,177 @@
+---
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `brfss2013`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+#load("brfss2013.RData")
+```
+
+
+
+* * *
+
+## Part 1: Data
+More details about the data can be located at http://www.cdc.gov/brfss/.
+After loading the recordset, I chose to keep a subset of variables that describe respondents. First, only Minnesota reponses were selected from the overall dataset.  
+
+```r
+
+```
+
+Second, the following variables were selected
+
+
+```{r xtable, results="asis"}
+library(xtable)
+df_vars=read.csv("https://raw.githubusercontent.com/wer61537/Duke/master/vars.csv")
+print(xtable(df_vars[1:16,]), type="html")
+```
+
+
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1: Is there an association betwen immunization for tetanus and ethnicity, educational level, income and gender?**
+In Minnesota, state law requires every child in grades kindergarten through senior year of high school to be able to prove they have been immunized for hepatitis B, DTaP/DT, polio, MMR, tetanus, diptheria, Tdap and meningcoccal and varicella. Exemptions are allowed for conscientious objection or medical if supported by a health care provider.  Immunization within immigrant communties, and to a lesser extent in the larger population, is suspected of causing autism.  The Somali community in particular is suspect after a large increase in autism rates since immigration to the United States.
+
+Variables in the dataset to consider are tetanus, ethnic, ed_level, X_incomg and sex. 
+
+**Research quesion 2: Is there an association between seatbelt use and ethnicity, educational level, income and gender?**
+in Minnesota, all automobile (this includes cars, vans and trucks) occupants (drivers and passengers) in the front, back and other seats seats must be buckled up or be in an approved child restraint. Police have the right to stop and ticket drivers or passengers who are unbuckled.  Does usage differ between racial and other groups?
+
+Variables in the dataset to consider are seatbelt, ethnic, ed_level, X_incomg and sex. 
+
+**Research quesion 3: Is there an associaton between the number of "bad" mental health days and ethnicity, educational level, income and gender?**
+The menthlth variable is the number Of days the respondent reported that their mental health was not good.
+
+Variables in the dataset to consider are seatbelt, ethnic, ed_level, X_incomg and sex. 
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+For each of the 16 variables in the Minnesota BRFSS2013 dataset, frequencies for each level were determined.
+```r
+brfss2013_MN2 %>% 
+  group_by(physhlth) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(menthlth) %>% 
+  summarise(count = n())
+
+
+brfss2013_MN2 %>% 
+  group_by(poorhlth) %>% 
+  summarise(count = n())
+
+
+brfss2013_MN2 %>% 
+  group_by(veteran3) %>% 
+  summarise(count = n())
+
+
+brfss2013_MN2 %>% 
+  group_by(marital) %>% 
+  summarise(count = n())
+
+
+brfss2013_MN2 %>% 
+  group_by(children) %>% 
+  summarise(count = n())
+
+
+brfss2013_MN2 %>% 
+  group_by(educa) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(employ1) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(X_incomg) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(sex) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(ethnic) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(seatbelt) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(flushot6) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(flshtmy2) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(tetanus) %>% 
+  summarise(count = n())
+
+brfss2013_MN2 %>% 
+  group_by(pneuvac3) %>% 
+  summarise(count = n())
+
+```
+
+**Research quesion 1: Is there an association betwen immunization for tetanus and ethnicity, education, income and gender?**
+Tetanus vaccination is required by state law, reported tetanus immunization was 
+```{r}
+
+```
+
+
+
+**Research quesion 2:**
+
+```{r}
+
+```
+
+
+
+**Research quesion 3:**
+
+```{r}
+
+```
+
+Do you understand the research question?
+•Is it clear how data can be used to answer this research question as its phrased?
+•Scope of inference - generalizability: Is the data collection explained clearly? Did the writer correctly identify the population of interest? Did the writer correctly decide whether the findings from this analysis can be generalized to that population, or, if not, a subsection of that population? Is their explanation satisfactory to make this decision? Are potential sources of bias discussed, and if so, is the discussion satisfactory?
+•Scope of inference - causality: Did the writer identify correctly whether these data can be used to establish causal links between the variables of interest. Is the explanation satisfactory?
+•Are the research questions well defined and is it clear why they are of interest to the author / audience? Are appropriate numbers of variables used in each research question?
+•Are appropriate summary statistics calculated, and are they explained/interpreted in context of the data and the research question?
+•Are appropriate visualizations included, and are they explained/interpreted in context of the data and the research question?
+•Did the writer address what the findings from the exploratory analysis suggest about the research question?
+

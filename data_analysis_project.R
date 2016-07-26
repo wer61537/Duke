@@ -18,6 +18,7 @@ summarize_Var<-function(df, var){
 
 #get wd
 wd<-trim(getwd())
+wd<-"C:/Coursera/duke_probability"
 
 #open the Rdata file that was previously unzipped
 #load puts the Rdata into a dataframe named brfss2013
@@ -99,72 +100,169 @@ df_vars[1:16,1:3]
 #=========================================
 brfss2013_MN2 %>% 
   group_by(physhlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = physhlth)) + geom_bar(aes(fill = physhlth))
 
 brfss2013_MN2 %>% 
   group_by(menthlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = menthlth)) + geom_bar(aes(fill = menthlth))
+
 
 
 brfss2013_MN2 %>% 
   group_by(poorhlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = poorhlth)) + geom_bar(aes(fill = poorhlth))
 
 
 brfss2013_MN2 %>% 
   group_by(veteran3) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = veteran3)) + geom_bar(aes(fill = veteran3))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
 brfss2013_MN2 %>% 
   group_by(marital) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = marital)) + geom_bar(aes(fill = marital))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
 
 
 brfss2013_MN2 %>% 
   group_by(children) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = children)) + geom_bar(aes(fill = children))
 
 brfss2013_MN2 %>% 
   group_by(ed_level) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = ed_level)) + geom_bar(aes(fill = ed_level))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
 
 brfss2013_MN2 %>% 
   group_by(employ1) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = employ1)) + geom_bar(aes(fill = employ1))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
 brfss2013_MN2 %>% 
   group_by(income_level) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = income_level)) + geom_bar(aes(fill = income_level))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
 brfss2013_MN2 %>% 
   group_by(gender) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = gender)) + geom_bar(aes(fill = gender))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
 brfss2013_MN2 %>% 
   group_by(ethnic) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
-brfss2013_MN2 %>% 
-  group_by(seatbelt) %>% 
-  summarise(count = n())
+ggplot(data = brfss2013_MN2, mapping = aes(x = ethnic)) + geom_bar(aes(fill = ethnic))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
-brfss2013_MN2 %>% 
-  group_by(flushot6) %>% 
-  summarise(count = n())
+brfss2013_MN2 %>%
+  group_by(seatbelt) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
-brfss2013_MN2 %>% 
-  group_by(flshtmy2) %>% 
-  summarise(count = n())
+ggplot(data = brfss2013_MN2, mapping = aes(x = seatbelt)) + geom_bar(aes(fill = seatbelt))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
-brfss2013_MN2 %>% 
-  group_by(tetanusYN) %>% 
-  summarise(count = n())
+brfss2013_MN2 %>%
+  group_by(flushot6) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
-brfss2013_MN2 %>% 
-  group_by(pneuvac3) %>% 
-  summarise(count = n())
+ggplot(data = brfss2013_MN2, mapping = aes(x = flushot6)) + geom_bar(aes(fill = flushot6))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+brfss2013_MN2 %>%
+  group_by(flshtmy2) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = flshtmy2)) + geom_bar(aes(fill = flshtmy2))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+brfss2013_MN2 %>%
+  group_by(tetanus) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+t<-brfss2013_MN2 %>%
+  group_by(tetanus, ethnic, ed_level) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+write.csv(t, "c:/temp/ethic_tetanus_ed.csv")
+
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = tetanus)) + geom_bar(aes(fill = tetanus))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+brfss2013_MN2 %>%
+  group_by(pneuvac3) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(data = brfss2013_MN2, mapping = aes(x = pneuvac3)) + geom_bar(aes(fill = pneuvac3))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 #=========================================
 #summarize each var
 #=========================================
@@ -241,9 +339,17 @@ brfss2013_MN2 %>%
   summarise(count = n())
 
 #=========================================
-#days of bad mental health use  by variable
+# days of bad mental health use  by variable
 #=========================================
 
+#==========================================
+# graphs
+#==========================================
+
+#==========================================
+# tetanus graphs
+#==========================================
+
 ggplot(brfss2013_MN2, aes(ethnic, fill=tetanus)) + geom_bar() +
   facet_grid(. ~ ed_level) + theme(text = element_text(size=12),
                                    axis.text.x = element_text(angle=90, vjust=1)) 
@@ -256,7 +362,14 @@ ggplot(brfss2013_MN2, aes(ethnic, fill=tetanus)) + geom_bar() +
   facet_grid(. ~ gender) + theme(text = element_text(size=12),
                                  axis.text.x = element_text(angle=90, vjust=1)) 
 
+#==========================================
+# tetanus graphs
+#==========================================
 
+
+#==========================================
+# seatbelt graphs
+#==========================================
 
 ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
   facet_grid(. ~ ed_level) + theme(text = element_text(size=12),
@@ -265,15 +378,25 @@ ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
 ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
   facet_grid(. ~ income_level) + theme(text = element_text(size=12),
                                        axis.text.x = element_text(angle=90, vjust=1)) 
-
 ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
-  facet_grid(. ~ gender) + theme(text = element_text(size=12),
+    facet_grid(. ~ gender) + theme(text = element_text(size=12),
                                    axis.text.x = element_text(angle=90, vjust=1)) 
 
-ggplot(brfss2013_MN2, aes(x=ethnic, y=menthlth)) + 
+#==========================================
+# seatbelt graphs
+#==========================================
+
+
+#==========================================
+# menthlth graphs
+#==========================================
+ggplot(brfss2013_MN2, aes(x=ethnic, y=menthlth), na.rm=TRUE) + 
       geom_boxplot(aes(fill=ed_level)) + 
       facet_wrap(~gender)
 
 ggplot(brfss2013_MN2, aes(x=ethnic, y=menthlth)) + 
   geom_boxplot(aes(fill=income_level)) + 
   facet_wrap(~gender)
+#==========================================
+# menthlth graphs
+#==========================================

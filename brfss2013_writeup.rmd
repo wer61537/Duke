@@ -6,27 +6,50 @@ output:
     highlight: pygments
     theme: spacelab
 ---
+```{r global_options}
+knitr::opts_chunk$set(fig.width=10, fig.height=6, fig.path='Figs/',
+                      warning=FALSE, message=FALSE)
+```
 
 ## Setup
-
+Several packages are needed for manipulating and graphing the data.
 ### Load packages
 
 ```{r load-packages, message = FALSE}
+#load libraries
+suppressMessages(library(dplyr))
 library(ggplot2)
-library(dplyr)
+library(xtable)
+library(lazyeval)
 ```
 
+Two helper functions were attempted.  The first to trim strings to aid concatenation and the second to consolidate code used to summarize variables.  While the latter is not used, it's included here in case a reader or reviewer had insight into how to fix it.  Finally, a variable to store the working directory was created to store the path to the code and the data file.
+
+```{r helper-functions}
+#helper function to trim leading and ending spaces
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+
+summarize_Var<-function(df, var){
+        print(var)
+        df %>% 
+        group_by(var) %>% 
+        summarise(count = n())
+          }
+
+#get wd
+wd<-trim(getwd())
+wd<-"C:/Coursera/duke_probability"
+```
 ### Load data
 
-Make sure your data and R Markdown files are in the same directory. When loaded
-your data file will be called `brfss2013`. Delete this note when before you submit 
-your work. 
+The compressed file was downloaded from the course website and the brfss2013.Rdata file extracted.  
 
 ```{r load-data}
-#load("brfss2013.RData")
+#open the Rdata file that was previously unzipped
+#load puts the Rdata into a dataframe named brfss2013
+load(paste("C:/Coursera/duke_probability","/brfss2013.Rdata",sep=""))
+names(brfss2013)
 ```
-
-
 
 * * *
 
@@ -34,125 +57,400 @@ your work.
 More details about the data can be located at http://www.cdc.gov/brfss/.
 After loading the recordset, I chose to keep a subset of variables that describe respondents. First, only Minnesota reponses were selected from the overall dataset.  
 
-```r
-
+```{r get-mn}
+#limit the data to MN
+brfss2013_MN<-filter(brfss2013, X_state == "Minnesota")
 ```
 
 Second, the following variables were selected
+```{r get-vars}
+#get only the following 16 columns of interest
+col_names=c(
+  "physhlth",
+  "menthlth",
+  "poorhlth",
+  "veteran3",
+  "marital",
+  "children",
+  "educa",
+  "employ1",
+  "X_incomg",
+  "sex",
+  "X_race",
+  "seatbelt",
+  "flushot6",
+  "flshtmy2",
+  "tetanus",
+  "pneuvac3"
+    )
 
+#pull out the columns of interest
+brfss2013_MN2<-brfss2013_MN[, col_names]
+```
+Sadly, there is no easy (and pretty way) to generate tables in R and Markdown.  Details about the variables was collected from the CDC and stored in a csv.  The following code reads the file and displays the variables of interest.
 
 ```{r xtable, results="asis"}
-library(xtable)
+
 df_vars=read.csv("https://raw.githubusercontent.com/wer61537/Duke/master/vars.csv")
-print(xtable(df_vars[1:16,]), type="html")
+print(xtable(df_vars[1:16,]), size="\\fontsize{9pt}{10pt}\\selectfont",type="html")
 ```
 
 
-* * *
+Several of the variables had long character strings and sometimes not memorable names. The following code renames a few variables and changes others' values for graph friendly values.
+
+```{r rename_vars}
+#add new variables as clean up some of the levels
+brfss2013_MN2$gender<-brfss2013_MN2$sex
+
+brfss2013_MN2$tetanusYN[grepl("Yes",brfss2013_MN2$tetanus)]<-"Yes"
+brfss2013_MN2$tetanusYN[grepl("No",brfss2013_MN2$tetanus)]<-"No"
+
+brfss2013_MN2$ethnic[grepl("White",brfss2013_MN2$X_race)]<-"White"
+brfss2013_MN2$ethnic[grepl("Black",brfss2013_MN2$X_race)]<-"Black"
+brfss2013_MN2$ethnic[grepl("Hawaiian",brfss2013_MN2$X_race)]<-"Hawaiian"
+brfss2013_MN2$ethnic[grepl("Asian",brfss2013_MN2$X_race)]<-"Asian"
+brfss2013_MN2$ethnic[grepl("Other",brfss2013_MN2$X_race)]<-"Other"
+brfss2013_MN2$ethnic[grepl("Native",brfss2013_MN2$X_race)]<-"Native"
+brfss2013_MN2$ethnic[grepl("Multi",brfss2013_MN2$X_race)]<-"Multi"
+
+#remove verbosity
+brfss2013_MN2$ed_level[grepl("Never",brfss2013_MN2$educa)]<-"Never"
+brfss2013_MN2$ed_level[grepl("Elementary",brfss2013_MN2$educa)]<-"Elem"
+brfss2013_MN2$ed_level[grepl("Some High School",brfss2013_MN2$educa)]<-"Some HS"
+brfss2013_MN2$ed_level[grepl("High school graduate",brfss2013_MN2$educa)]<-"HS"
+brfss2013_MN2$ed_level[grepl("Other",brfss2013_MN2$educa)]<-"Other"
+brfss2013_MN2$ed_level[grepl("Some college",brfss2013_MN2$educa)]<-"Some Colleg"
+brfss2013_MN2$ed_level[grepl("College graduate",brfss2013_MN2$educa)]<-"College"
+
+#remove thousands place and verbosity
+brfss2013_MN2$income_level<-gsub(",000", "", brfss2013_MN2$X_incomg)
+brfss2013_MN2$income_level<-gsub(" to less than ", "-", brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("\\$", "", brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub(" or more", "50+", brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("5055+", "50+", brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("Less than ", "",brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("15-25", "<25",brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("15", "<15",brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("25-35", "<35",brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("35-50", "<50",brfss2013_MN2$income_level)
+brfss2013_MN2$income_level<-gsub("5050", "50",brfss2013_MN2$income_level)
+
+```
 
 ## Part 2: Research questions
 
-**Research quesion 1: Is there an association betwen immunization for tetanus and ethnicity, educational level, income and gender?**
+**Research question 1: Is there an association betwen immunization for tetanus and ethnicity, educational level, income and gender?**
 In Minnesota, state law requires every child in grades kindergarten through senior year of high school to be able to prove they have been immunized for hepatitis B, DTaP/DT, polio, MMR, tetanus, diptheria, Tdap and meningcoccal and varicella. Exemptions are allowed for conscientious objection or medical if supported by a health care provider.  Immunization within immigrant communties, and to a lesser extent in the larger population, is suspected of causing autism.  The Somali community in particular is suspect after a large increase in autism rates since immigration to the United States.
 
-Variables in the dataset to consider are tetanus, ethnic, ed_level, X_incomg and sex. 
+*Variables in the dataset to consider are tetanus, ethnic, ed_level, income_level and gender.* 
 
-**Research quesion 2: Is there an association between seatbelt use and ethnicity, educational level, income and gender?**
+**Research question 2: Is there an association between seatbelt use and ethnicity, educational level, income and gender?**
 in Minnesota, all automobile (this includes cars, vans and trucks) occupants (drivers and passengers) in the front, back and other seats seats must be buckled up or be in an approved child restraint. Police have the right to stop and ticket drivers or passengers who are unbuckled.  Does usage differ between racial and other groups?
 
-Variables in the dataset to consider are seatbelt, ethnic, ed_level, X_incomg and sex. 
+*Variables in the dataset to consider are seatbelt, ethnic, ed_level, income_level and gender.* 
 
-**Research quesion 3: Is there an associaton between the number of "bad" mental health days and ethnicity, educational level, income and gender?**
-The menthlth variable is the number Of days the respondent reported that their mental health was not good.
+**Research question 3: Is there an associaton between the number of "bad" mental health days and ethnicity, educational level, income and gender?**
+The menthlth variable is the number Of days the respondent reported that their mental health was not good.  The Native American population in Minnesota has high rates of alcoholism, homelessness and violence.  The black population in Minnesota is concentrated in specific neighborhoods in Minneapolis and St. Paul.  The recent killing of a school cafeteria supervisor perhaps highlights distress in the black communities in the state.  Finally, multi-racial individuals may have higher stress due to competing ethnic heritages. 
 
-Variables in the dataset to consider are seatbelt, ethnic, ed_level, X_incomg and sex. 
-
-
-* * *
+*Variables in the dataset to consider are seatbelt, ethnic, ed_level, income_level and gender.* 
 
 ## Part 3: Exploratory data analysis
 For each of the 16 variables in the Minnesota BRFSS2013 dataset, frequencies for each level were determined.
-```r
+
+##### Number of Days Physical Health Not Good (physhlth)
+ 66 percent of the respondents reported that they had no days where they thought there health was poor.  Another 16 percent report that there health was poor up to 5 days.
+```{r physhlth}
 brfss2013_MN2 %>% 
   group_by(physhlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = physhlth)) + geom_bar(aes(fill = physhlth))
+```
+
+##### Number of Days Mental Health Not Good (mnhlth)
+70 percent reported that their mental health was never "bad" but 13 percent reported that up to 5 days they considered there mental health poor.
+
+```{r mnhlth}
 brfss2013_MN2 %>% 
   group_by(menthlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = menthlth)) + geom_bar(aes(fill = menthlth))
+```
 
+#####  Poor Physical Or Mental Health (poorhlth)
+28 percent reported that there health was not poor.  Another 10 percent reported that there health was poor up to 5 days.
+
+```{r poorhlth}
 brfss2013_MN2 %>% 
   group_by(poorhlth) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = poorhlth)) + geom_bar(aes(fill = poorhlth))
+```
 
+#####  Respondent's Service Status (veteran3)
+Only 11 percent of the respondent's were veterans.
+
+```{r veteran}
 brfss2013_MN2 %>% 
   group_by(veteran3) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = veteran3)) + geom_bar(aes(fill = veteran3))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
 
+#####  Marital Status (marital)
+54 percent were married, 14 percent were divorced or separated, 10 percent widowed and 16 percent never married.
+
+```{r marital}
 brfss2013_MN2 %>% 
   group_by(marital) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = marital)) + geom_bar(aes(fill = marital))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
 
+#####  Number of Children (children)
+72 percnet of the respondents did not have children in the household.  Households with 1 or 2 children were at 10% and 3 children at 4%.  This is one area that seems to differ from the general population in Minnesota.  The 2000 census indicated that the average number of children in each family was 1.93 children (https://www.census.gov/population/socdemo/hh-fam/tabST-F1-2000.pdf).
+
+```{r children}
 brfss2013_MN2 %>% 
   group_by(children) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = children)) + geom_bar(aes(fill = children))
+```
 
+#####  Education Level (ed_level)
+41 percent of the respondents graduated from college, 30 percent had some college and 24 percent graduated from high school.  For 2010-2014, 33 percent of people over 25 had college degress.  92% were graduates of high school and or college (http://www.census.gov/quickfacts/table/PST045215/27). The respondents do seem similar to the general population as determined by the recent census.
+
+```{r ed_level}
 brfss2013_MN2 %>% 
-  group_by(educa) %>% 
-  summarise(count = n())
+  group_by(ed_level) %>% 
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = ed_level)) + geom_bar(aes(fill = ed_level))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   Employment Status (employ1)
+58 percent were employed or self-employed, 25 percent were retired and 4 percent were unemployed.  The census data indicates that 70 percent of people over 16 years old were employed. The respondents have a higher percentge of retired people compared to the census data.
+
+```{r employ1}
 brfss2013_MN2 %>% 
   group_by(employ1) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = employ1)) + geom_bar(aes(fill = employ1))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####  Income Category (income_level)
+The census data report that the median household income in 2014 dollars was $60,828.  In this Minnesota dataset, 45 percent make more than $50,000.  Since this was a telephone and cell phone survey, the respodents may not have reported the household income.  18 percent had income below $25,000.
+
+```{r income_level}
 brfss2013_MN2 %>% 
-  group_by(X_incomg) %>% 
-  summarise(count = n())
+  group_by(income_level) %>% 
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = income_level)) + geom_bar(aes(fill = income_level))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   Respondent's Gender (gender)
+57 percent of the respondents were female.  According to SuburbanStats (https://suburbanstats.org/population/how-many-people-live-in-minnesota), the percentage of women in Minnesota is 50 percent.  The number of women respondents is 14 percent higher than the Minnesota fraction.
+
+```{r gender}
 brfss2013_MN2 %>% 
-  group_by(sex) %>% 
-  summarise(count = n())
+  group_by(gender) %>% 
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = gender)) + geom_bar(aes(fill = gender))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####  Ethnicity (ethnic)
+88 percent of the respondents are white, 4 percent are black and 2 percent Asian. This is somewhat different from the census data where 85.4 percent are white, 6 percent are black, 1.3 percent are Native American, 4.9 percent are Asian, 5.2 percent are Hispanic and 2.4 percent are multi-ethnic.  Non-white people are under represented in the respondents.
+
+```{r ethnic}
 brfss2013_MN2 %>% 
   group_by(ethnic) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = ethnic)) + geom_bar(aes(fill = ethnic))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   How Often Use Seatbelts In Car? (seatbelt)
+Very few respondents reported not using their seatbelts.  84 percent reported always using their seatbelts and another 5 percent reported they usually do.  
+
+```{r seatbelt}
 brfss2013_MN2 %>% 
   group_by(seatbelt) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = seatbelt)) + geom_bar(aes(fill = seatbelt))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   Adult Flu Shot/Spray Past 12 Mos (flushot6)
+48 percent reported having a flu shot in the last 6 months.
+
+```{r flushot6}
 brfss2013_MN2 %>% 
   group_by(flushot6) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = flushot6)) + geom_bar(aes(fill = flushot6))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   When Received Most Recent Seasonal Flu Shot/Spray (flshtmy2)
+16 percent reported that their flu shot was nearly 1 year back (October 2012).  Looking at the bar graph, there were more innoculations in 2012.
+
+```{r flshtmy2}
 brfss2013_MN2 %>% 
   group_by(flshtmy2) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = flshtmy2)) + geom_bar(aes(fill = flshtmy2))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   Received Tetanus Shot Since 2005? (tetanus)
+Nearly 60 percent of respondents had received a tetanus shot.  22 percent had not.
+
+```{r tetanus}
 brfss2013_MN2 %>% 
   group_by(tetanus) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = tetanus)) + geom_bar(aes(fill = tetanus))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+#####   Pneumonia Shot Ever (pneuvac3)
+Only 31 percent had received a pneumonia vaccine.  The CDC recommendation is for children under 5, adults over 65 and people over 6 with specific risk factors.  Age was not selected as a variable but 25 percent of the respondents were retired. 
+```{r pneuvac3}
 brfss2013_MN2 %>% 
   group_by(pneuvac3) %>% 
-  summarise(count = n())
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n))
 
+ggplot(data = brfss2013_MN2, mapping = aes(x = pneuvac3)) + geom_bar(aes(fill = pneuvac3))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 ```
+
+Graphs of each variable of interest (tetanus, seatbelt and menthlth) in combination with the three other variables that might be associated (ethnic, ed_level, income_level and gender were prepared).  Tetanus and seatbelt are text responses and menthlth is numerical.  
+
+#### Tetanus Graphs
+By ethicity alone, 66 ercent Native	Americans respondents reported a tetanus inoculation, 61 percent of whites, 60 percent of multi-ethnics, 54 percent of black, 50 percent of other (unspecified race) and 44 percent of Asians.  Remember, that non-whites are under-represented in the Minnesota respondents.
+
+
+```{r tetanus-graphs, message = FALSE}
+#==========================================
+# tetanus graphs
+#==========================================
+
+ggplot(brfss2013_MN2, aes(ethnic, fill=tetanus)) + geom_bar() +
+  facet_grid(. ~ ed_level) + theme(text = element_text(size=8),
+                                   axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+
+ggplot(brfss2013_MN2, aes(ethnic, fill=tetanus)) + geom_bar() +
+  facet_grid(. ~ income_level) + theme(text = element_text(size=8),
+                                       axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+
+ggplot(brfss2013_MN2, aes(ethnic, fill=tetanus)) + geom_bar() +
+  facet_grid(. ~ gender) + theme(text = element_text(size=8),
+                                 axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+```
+
+#### Seatbeat Graphs
+```{r seatbelt-graphs, message = FALSE}
+#==========================================
+# seatbelt graphs
+#==========================================
+
+ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
+  facet_grid(. ~ ed_level) + theme(text = element_text(size=12),
+                                 axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+
+ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt)) + geom_bar() +
+  facet_grid(. ~ income_level) + theme(text = element_text(size=12),
+                                       axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+ggplot(brfss2013_MN2, aes(ethnic, fill=seatbelt), na.rm=TRUE) + geom_bar() +
+    facet_grid(. ~ gender) + theme(text = element_text(size=12),
+                                   axis.text.x = element_text(face='bold',angle=90, vjust=1)) 
+```
+
+### Mental Health Graphs
+```{r menthlth-graphs, message = FALSE}
+#==========================================
+# menthlth graphs
+#==========================================
+ggplot(brfss2013_MN2, aes(x=ethnic, y=menthlth)) + 
+      geom_boxplot(aes(fill=ed_level)) + 
+      facet_wrap(~gender)
+
+ggplot(brfss2013_MN2, aes(x=ethnic, y=menthlth)) + 
+  geom_boxplot(aes(fill=income_level)) + 
+  facet_wrap(~gender)
+```
+
+
+
 
 **Research quesion 1: Is there an association betwen immunization for tetanus and ethnicity, education, income and gender?**
-Tetanus vaccination is required by state law, reported tetanus immunization was 
+Tetanus (and other) vaccination is required by state law, reported tetanus immunization was 
 ```{r}
 
 ```
 
 
 
-**Research quesion 2:**
+**Research quesion 2: Is there an association between seatbelt use and ethnicity, educational level, income and gender?**
 
 ```{r}
 
@@ -160,11 +458,13 @@ Tetanus vaccination is required by state law, reported tetanus immunization was
 
 
 
-**Research quesion 3:**
+**Research question 3: Is there an associaton between the number of "bad" mental health days and ethnicity, educational level, income and gender?**
 
-```{r}
+As noticed in the two other questions, the population of Minnesota is predominately white.  While there are have significant waves of East Africans (Somalis, Kenyans and Ethiopians) and Southeast Asians (Hmong, Cambodian, Vietnamese and Karen), the population is still white.
 
-```
+Following are two facetted barplots showing "bad" mental health days by ethnic group, gender and educational level or income level.  It's interesting that Asians have reported fewer days with little spread in values compared to all other ethnic groups.  Black men report have at 15 days while black women report 
+
+
 
 Do you understand the research question?
 •Is it clear how data can be used to answer this research question as its phrased?
